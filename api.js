@@ -130,3 +130,26 @@ exports.resignGame = gameId => {
   const req = https.request(options, res => {});
   req.end();
 };
+
+exports.getTeamMembers = (teamId, onData, onEnd) => {
+  const options = {
+    ...optionsBase,
+    path: `/team/${teamId}/users`
+  };
+  https
+  .get(options, res => {
+    res.on("data", raw => {
+      let data;
+      try {
+        data = JSON.parse(raw.toString());
+      } catch (err) {
+        return;
+      }
+      onData(data);
+    });
+    res.on("end", onEnd);
+  })
+  .on("error", e => {
+    console.error("event stream error:", e);
+  });
+}

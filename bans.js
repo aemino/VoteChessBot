@@ -1,13 +1,16 @@
 const fs = require("fs");
 const path = require("path");
 
-const BANNED_FILENAME = path.join(__dirname, "banned.txt");
+const api = require('./api');
+
+const TEAM_ID = process.env.TEAM_ID;
 
 const MODS_FILENAME = path.join(__dirname, "mods.txt");
+const BANNED_FILENAME = path.join(__dirname, "banned.txt");
 
 let modUsernames = [];
-
 let bannedUsernames = [];
+let teamUsernames = [];
 
 exports.banUsername = username => {
   fs.appendFile(BANNED_FILENAME, username.toLowerCase() + "\n", err => {
@@ -38,13 +41,20 @@ exports.makeMod = username => {
   });
 };
 
-exports.usernameIsBanned = username => {
-  return bannedUsernames.includes(username.toLowerCase());
-};
 
 exports.usernameIsMod = username => {
   return modUsernames.includes(username.toLowerCase());
 };
+
+exports.usernameIsBanned = username => {
+  return bannedUsernames.includes(username.toLowerCase());
+};
+
+exports.usernameInTeam = username => {
+  if (!TEAM_ID) return true;
+  return teamUsernames.includes(username.toLowerCase());
+}
+
 
 function cacheModUsernames() {
   fs.readFile(MODS_FILENAME, (err, data) => {
@@ -53,7 +63,7 @@ function cacheModUsernames() {
       .toString()
       .split("\n")
       .filter(line => !!line.trim());
-    console.log("cached mods.txt:", modUsernames);
+    console.log(`cached ${MODS_FILENAME}: `, modUsernames);
   });
 }
 
@@ -64,14 +74,31 @@ function cacheBannedUsernames() {
       .toString()
       .split("\n")
       .filter(line => !!line.trim());
-    console.log("cached banned.txt:", bannedUsernames);
+    console.log(`cached ${BANNED_FILENAME}: `, bannedUsernames);
   });
 }
 
-cacheModUsernames();
-cacheBannedUsernames();
+function cacheTeamUsernames() {
+  if (!TEAM_ID) return;
 
-setInterval(() => {
+  let usernames = [];
+
+  api.getTeamMembers(TEAM_ID,
+    data => {
+      usernames.push(data.username);
+    },
+    _ => {
+      teamUsernames = usernames;
+      console.log(`cached team users: `, teamUsernames);
+    }
+  );
+}
+
+function updateCache() {
   cacheModUsernames();
   cacheBannedUsernames();
-}, 60000);
+  cacheTeamUsernames();
+}
+
+setImmediate(updateCache);
+setInterval(updateCache, 60000);

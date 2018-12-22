@@ -10,7 +10,9 @@ const {
 } = require("./bans");
 
 const VOTE_SECONDS = process.env.VOTE_SECONDS || 30;
+const BOT_ID = process.env.BOT_ID;
 console.log(`vote time: ${VOTE_SECONDS} seconds`);
+console.log(`bot id: ${BOT_ID}`);
 
 const SUPPORTED_VARIANTS = ["standard", "crazyhouse"];
 
@@ -122,6 +124,9 @@ function onGameEvent(data) {
     chatSpectator(`Voting ends in ${VOTE_SECONDS} seconds.`);
     setVoteTimer();
   } else if (data.type == "chatLine" && data.room === "spectator") {
+    if (!usernameInTeam(data.username)) {
+      console.log("team mode activated, ignoring chat from non-team user", data.username, data.text);
+    }
     if (usernameIsBanned(data.username)) {
       console.log("ignoring chat from banned user", data.username, data.text);
       return;
@@ -151,13 +156,13 @@ function isOurMove(moves) {
   if (!currentGameFull) return false;
   if (moves) {
     return (
-      (currentGameFull.white.id === "votechess" && moves.length % 2 === 0) ||
-      (currentGameFull.black.id === "votechess" && moves.length % 2 !== 0)
+      (currentGameFull.white.id === BOT_ID && moves.length % 2 === 0) ||
+      (currentGameFull.black.id === BOT_ID && moves.length % 2 !== 0)
     );
   } else {
     return (
-      (currentGameFull.white.id === "votechess" && game.turn() === "w") ||
-      (currentGameFull.black.id === "votechess" && game.turn() === "b")
+      (currentGameFull.white.id === BOT_ID && game.turn() === "w") ||
+      (currentGameFull.black.id === BOT_ID && game.turn() === "b")
     );
   }
 }
