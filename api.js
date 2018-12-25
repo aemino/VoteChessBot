@@ -131,26 +131,31 @@ exports.resignGame = gameId => {
   req.end();
 };
 
-exports.getTeamMembers = (teamId, onData, onEnd) => {
+exports.getTeamMembers = (teamId, onEnd) => {
   const options = {
     ...optionsBase,
     path: `/team/${teamId}/users`
   };
   https
     .get(options, res => {
+      let data = "";
+
       res.on("data", raw => {
-        let data;
+        data += raw.toString();
+      });
+      res.on("end", () => {
         try {
-          data = raw.toString().split("\n").map(JSON.parse);
+          data = data.split("\n");
+          data.pop();
+          data = data.map(JSON.parse);
         } catch (err) {
           return;
         }
 
-        data.forEach(onData);
+        onEnd(data);
       });
-      res.on("end", onEnd);
     })
     .on("error", e => {
       console.error("event stream error:", e);
     });
-}
+};

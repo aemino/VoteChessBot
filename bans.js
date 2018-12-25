@@ -81,14 +81,9 @@ function cacheBannedUsernames() {
 function cacheTeamUsernames() {
   if (!TEAM_ID) return;
 
-  let usernames = [];
-
   api.getTeamMembers(TEAM_ID,
-    data => {
-      usernames.push(data.username.toLowerCase());
-    },
-    _ => {
-      teamUsernames = usernames;
+    members => {
+      teamUsernames = members.map(member => member.id);
       console.log(`cached team users: `, teamUsernames);
     }
   );
