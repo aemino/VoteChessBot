@@ -85,7 +85,7 @@ function cacheTeamUsernames() {
 
   api.getTeamMembers(TEAM_ID,
     data => {
-      usernames.push(data.username);
+      usernames.push(data.username.toLowerCase());
     },
     _ => {
       teamUsernames = usernames;
