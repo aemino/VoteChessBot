@@ -6,7 +6,8 @@ const {
   unbanUsername,
   makeMod,
   usernameIsBanned,
-  usernameIsMod
+  usernameIsMod,
+  usernameInTeam
 } = require("./bans");
 
 const VOTE_SECONDS = process.env.VOTE_SECONDS || 30;
