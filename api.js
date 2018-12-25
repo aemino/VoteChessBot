@@ -137,19 +137,20 @@ exports.getTeamMembers = (teamId, onData, onEnd) => {
     path: `/team/${teamId}/users`
   };
   https
-  .get(options, res => {
-    res.on("data", raw => {
-      let data;
-      try {
-        data = JSON.parse(raw.toString());
-      } catch (err) {
-        return;
-      }
-      onData(data);
+    .get(options, res => {
+      res.on("data", raw => {
+        let data;
+        try {
+          data = raw.toString().split("\n").map(JSON.parse);
+        } catch (err) {
+          return;
+        }
+
+        data.forEach(onData);
+      });
+      res.on("end", onEnd);
+    })
+    .on("error", e => {
+      console.error("event stream error:", e);
     });
-    res.on("end", onEnd);
-  })
-  .on("error", e => {
-    console.error("event stream error:", e);
-  });
 }
